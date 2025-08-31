@@ -12,3 +12,10 @@ wheels/
 
 notebook/
 
+# Logs
+*.log
+
+# IDE/editor settings
+.vscode/
+.idea/
+
