@@ -5,3 +5,16 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []
+
+
+# Optional: authors, license
+authors = [{ name = "Aryan Gupta" }]
+license = { text = "Proprietary" }
+
+# Optional: CLI command (python -m pip install -e . ke baad yeh create hoga)
+[project.scripts]
+ecomm-assistant = "ecommerce_product_assistant.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["prod_assistant"]
+include = ["ecommerce_product_assistant*"]
