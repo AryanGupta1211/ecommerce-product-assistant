@@ -17,6 +17,7 @@ packages = [
     "undetected-chromedriver",
     "uvicorn",
     "structlog",
+    "langgraph",
 ]
 for pkg in packages:
     try:
