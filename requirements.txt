@@ -15,4 +15,5 @@ streamlit==1.49.1
 undetected-chromedriver==3.5.5
 uvicorn==0.35.0
 structlog==25.4.0
-langgraph==langgraph==0.6.7
+langgraph==0.6.7
+ragas==0.3.4

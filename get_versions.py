@@ -18,6 +18,7 @@ packages = [
     "uvicorn",
     "structlog",
     "langgraph",
+    "ragas",
 ]
 for pkg in packages:
     try:
