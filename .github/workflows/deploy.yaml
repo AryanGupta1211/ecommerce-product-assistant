@@ -1,10 +1,10 @@
-name: CI/CD to EKS
+name: Deploy App to EKS
 
 on:
   push:
     branches:
-      - main # runs on push to main branch
-  workflow_dispatch: # allow manual trigger
+      - main # Runs automatically on push to main branch
+  workflow_dispatch: # Allow manual trigger
 
 jobs:
   deploy:
@@ -22,20 +22,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Deploy CloudFormation Stack
+      # Check if EKS Cluster exists
+      - name: Check if EKS Cluster exists
         run: |
-          aws cloudformation deploy \
-            --stack-name product-assistant-cluster \
-            --template-file infra/eks-with-ecr.yaml \
-            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-            --region ${{ secrets.AWS_REGION }}
+          if ! aws eks describe-cluster --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}; then
+            echo "EKS Cluster not found! Run infra.yml workflow first."
+            exit 1
+          fi
 
       # Login to ECR
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      # Build, tag and push docker image to ECR
+      # Build, tag and push Docker image to ECR
       - name: Build and Push Docker image
         env:
           REGISTRY: ${{ secrets.ECR_REGISTRY }}
@@ -51,12 +51,12 @@ jobs:
         with:
           version: "latest"
 
-      # Update kubeconfig for EKS
+      # Update kubeconfig for EKS (assumes cluster already exists)
       - name: Update kubeconfig
         run: |
           aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
 
-      # ✅ NEW STEP: Create/Update Kubernetes Secret
+      # Create/Update Kubernetes Secret (for API keys)
       - name: Create Kubernetes secret for API keys
         run: |
           kubectl create secret generic product-assistant-secrets \
@@ -67,7 +67,7 @@ jobs:
             --from-literal=ASTRA_DB_KEYSPACE=${{ secrets.ASTRA_DB_KEYSPACE }} \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      # Deploy to EKS using kubectl
+      # Deploy manifests
       - name: Deploy to EKS
         run: |
           kubectl apply -f k8/deployment.yaml
